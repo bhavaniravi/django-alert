@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from django.apps import apps
 from django.contrib import contenttypes
 from operator import le,ge,lt,gt,eq
-
+from django.conf import settings
 
 # Create your models here.
 class Alert(models.Model):
@@ -35,14 +35,14 @@ def alert_condition_exist(alerts,sender,instance):
         op = parseOp(op)
         print (op)
         if op(attr,alert.value):
-            #raise_notification()
+            notify.send(alert.owner, alert.owner,"alert triggered ") 
             alert.notification_count += 1
             if not alert == instance:
                 alert.save()
 
 
 
-@receiver(pre_save)
+@receiver(pre_save,sender=settings.MODELS_TO_CREATE_ALERT)
 def common_model_save(sender, instance,**kwargs):
     try:
         ct = contenttypes.models.ContentType.objects.get_for_model(sender)
