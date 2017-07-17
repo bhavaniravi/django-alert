@@ -125,4 +125,4 @@ STATICFILES_DIRS = (
 STATIC_URL = '/static/'
 
 
-MODELS_TO_CREATE_ALERT = ["user","group"]
+MODELS_TO_CREATE_ALERT = ["User","Group"]

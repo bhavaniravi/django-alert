@@ -16,7 +16,7 @@ class Alert(models.Model):
     field = models.CharField(max_length=100, choices=())
     operation = models.CharField(max_length=10)
     value = models.TextField()
-    notification_count = models.PositiveIntegerField()
+    notification_count = models.PositiveIntegerField(default=0)
 
 def parseOp(op):
    op_dict = {">":gt,"<":lt,">=":ge,"<=":le,"=":eq}
@@ -35,19 +35,20 @@ def alert_condition_exist(alerts,sender,instance):
         op = parseOp(op)
         print (op)
         if op(attr,alert.value):
-            notify.send(alert.owner, alert.owner,"alert triggered ") 
+            #notify.send(alert.owner, alert.owner,"alert triggered ") 
             alert.notification_count += 1
             if not alert == instance:
                 alert.save()
 
 
 
-@receiver(pre_save,sender=settings.MODELS_TO_CREATE_ALERT)
+@receiver(pre_save)
 def common_model_save(sender, instance,**kwargs):
     try:
-        ct = contenttypes.models.ContentType.objects.get_for_model(sender)
-        alerts = Alert.objects.filter(model=ct)
-        print (alerts)
-        alert_condition_exist(alerts,sender,instance)
+        if sender.__name__ in settings.MODELS_TO_CREATE_ALERT:
+            ct = contenttypes.models.ContentType.objects.get_for_model(sender)
+            alerts = Alert.objects.filter(model=ct)
+            print (alerts)
+            alert_condition_exist(alerts,sender,instance)
     except ValueError as e:
         print (e)
